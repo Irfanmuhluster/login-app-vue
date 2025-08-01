@@ -9,13 +9,13 @@
 
 ## Langkah-langkah Memulai Laravel
 
-composer install
-npm install && npm run dev
-Daftarkan nama db, username, password di .env
-php artisan key:generate
-php artisan migrate
-php artisan db:seed
-php artisan serve
+- composer install
+- npm install && npm run dev
+- Daftarkan nama db, username, password di .env
+- php artisan key:generate
+- php artisan migrate
+- php artisan db:seed
+- php artisan serve
 
 ## Login:
 email   : admin@gmail.com
