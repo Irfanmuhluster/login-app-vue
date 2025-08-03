@@ -1,19 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
+import Product from '../views/Product.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const routes = [
-  { 
-    path: '/', 
+  {
+    path: '/',
     component: Login,
-    name: 'Login',
-        
+    name: 'login',
+
   },
-  { 
-    path: '/dashboard', 
+  {
+    path: '/dashboard',
     component: Dashboard,
-    name: 'Dashboard',
+    name: 'dashboard',
+    meta: { requiresAuth: true }
   },
+  {
+    path: '/products',
+    component: Product,
+    name: 'Products',
+  },
+
 ]
 
 const router = createRouter({
@@ -22,21 +31,27 @@ const router = createRouter({
 })
 
 // Route guard untuk autentikasi
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  if (!token && to.name !== 'Login') {
-    next({ name: 'Login' })
-    return
-  }
-  
-  if (token && to.name === 'Login') {
-    next({ name: 'Dashboard' })
-    return
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+
+  // Jika state user belum ada, coba fetch dulu
+  if (authStore.user === null) {
+    await authStore.fetchUser();
   }
 
-  console.log("token ", token)
-  next()
-  
-})
+  const isAuthenticated = authStore.isAuthenticated;
+  const requiresAuth = to.meta.requiresAuth;
+
+  if (requiresAuth && !isAuthenticated) {
+    // Jika rute butuh login tapi pengguna belum login, redirect ke halaman login
+    next({ name: 'login' });
+  } else if (to.name === 'login' && isAuthenticated) {
+    // Jika pengguna sudah login dan mencoba mengakses halaman login, redirect ke dashboard
+    next({ name: 'dashboard' });
+  } else {
+    // Lanjutkan navigasi
+    next();
+  }
+});
 
 export default router

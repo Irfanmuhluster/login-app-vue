@@ -6,7 +6,7 @@
           Dashboard
         </h2>
         <p class="mt-2 text-center text-xl text-gray-600">
-          Selamat datang di dashboard, {{ user.name }}
+          Selamat datang di dashboard, {{ authStore.user.name }}
         </p>
       </div>
       <div class="bg-white py-8 px-8 shadow sm:rounded-lg sm:px-10">
@@ -31,46 +31,28 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from '@/axios'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'Dashboard',
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
+  },
   data() {
     return {
       user: {}
     }
   },
-  async created() {
-    const token = localStorage.getItem('token')
-    if (!token) {
-        this.$router.push('/')
-        return
-    }
-    try {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        const res = await axios.get('/api/user')
-        this.user = res.data
-      } catch (error) {
-        console.error('Error fetching user:', error)
-        if (error.response && error.response.status === 401) {
-            this.handleLogout()
-        }
-      }
-  },
-  methods: {  
-    handleLogout() {   
-        localStorage.removeItem('token')
-        delete axios.defaults.headers.common['Authorization']
-        this.$router.push('/')
-    },
+  methods: {
     async logout() {
-        try {
-            await axios.post('/api/logout')
-        } catch (error) {
-            console.error('Logout error:', error)
-        } finally {
-            this.handleLogout()
-        }
+      try {
+        await this.authStore.logout();
+        this.$router.push('/');
+      } catch (error) {
+        console.error('Logout error:', error)
+      }
     }
   }
 }

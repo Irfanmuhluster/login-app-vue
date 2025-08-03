@@ -15,9 +15,13 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
+  },
   data() {
     return {
       form: {
@@ -38,19 +42,12 @@ export default {
         this.errors.password = ''
         this.generalError = ''
         
-        await axios.get('/sanctum/csrf-cookie')
-        
-        const response = await axios.post('/api/login', {
+        const response = await this.authStore.login({
           email: this.form.email,
           password: this.form.password
-        })
-        
-        // Simpan token ke localStorage
-        const token = response.data.token
-        localStorage.setItem('token', token)
-        
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        
+        }, { withCredentials: true })
+
+        console.log('Login successful', response)
         this.$router.push('/dashboard')
       } catch (e) {
         if (e.response.status === 422) {
